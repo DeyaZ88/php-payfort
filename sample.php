@@ -45,7 +45,7 @@ $payfortIntegration->return_url             = $return_url;
 $requestParams  = $payfortIntegration->getRequestParams();
 
 // 3- generate request signature
-$signature      = $payfortIntegration->calculateFortSignature('SHA_request_phrase','sha256');
+$signature      = $payfortIntegration->calculateSignature($requestParams, 'SHA_request_phrase', 'sha256');
 
 // 4- add signature to the request
 $requestParams['signature'] = $signature;

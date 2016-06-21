@@ -14,10 +14,12 @@ $payfortIntegration = new PayfortIntegration();
 //check if there are return parameters inside payfort responce (option "Send Response Parameters" should be activated inside your account)
 if (isset($_REQUEST['signature']) AND !empty($_REQUEST['signature'])) {
     //calculate Signature after back to merchant and comapre it with request Signature 
-    $checkReturnSignature = $payfortIntegration->calculateReturnToMerchantSignature('SHA_response_phrase', 'sha256');
+    $arrData = $_REQUEST;
+    unset($arrData['signature']);
+    $returnSignature = $payfortIntegration->calculateSignature($arrData, 'SHA_response_phrase', 'sha256');
     
-  
-    if ($checkReturnSignature) {
+    
+    if ($returnSignature == $_REQUEST['signature']) {
         //valide request
         echo "Response Message : " . $_REQUEST['response_message'];
         echo "<br>";

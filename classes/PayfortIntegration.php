@@ -23,42 +23,6 @@ class PayfortIntegration {
     public $language;
     public $command; // operation commnad (AUTHORIZATION)
     public $return_url; // back to merchant url
-        
-    
-    /**
-     * calculate fort signature
-     * 
-     * @param array $requestParams order request parameters
-     * @param string $shaRequestPharse as Request encryption Pharse
-     * @param string $securityType as security Type (sha256, sha128, sha512)
-     * @return strin signature
-     */
-    public function calculateFortSignature($shaRequestPharse, $securityType) {
-        
-        $requestParams = $this->getRequestParams();
-
-        ksort($requestParams);
-        $concatedStr = '';
-        foreach($requestParams as $key => $value) 
-        {
-            if($value != ''){
-                $concatedStr .= strtolower($key).'='.$value;
-            }
-        }
-
-        $concatedStr = $shaRequestPharse.$concatedStr.$shaRequestPharse;
-        
-        if($securityType == 'sha256') {
-            $signature = hash('sha256', $concatedStr);
-        } elseif ($securityType == 'sha128'){
-            $signature = sha1($concatedStr);
-        } elseif ($securityType == 'sha512'){
-            $signature = hash('sha512', $concatedStr);
-        }
-
-
-        return $signature;
-    }
     
     /**
      * genarate array of request Params
@@ -122,64 +86,27 @@ class PayfortIntegration {
         }
     }
     
+    
     /**
-     * calculate Signature after back to merchant and comapre it with request Signature
-     * 
-     * @param string $shaResponcePharse
+     * calculate fort signature
+     * @param array $arrData
+     * @param string $shaPharse
      * @param string $securityType
-     * @return boolean (true/ false)
+     * @return string fort signature
      */
-    public function calculateReturnToMerchantSignature($shaResponcePharse, $securityType)
+    public function calculateSignature($arrData, $shaPharse, $securityType)
     {
-        $requestParams      = $this->getReturnRequestParams();
-
-        $returnSignature    = $_REQUEST['signature'];
-
-        ksort($requestParams);
-        $concatedStr = '';
-        foreach($requestParams as $key => $value) 
-        {
-            if($value != ''){
-                $concatedStr .= strtolower($key).'='.$value;
-            }
+        $shaString             = '';
+        ksort($arrData);
+        foreach ($arrData as $k => $v) {
+            $shaString .= "$k=$v";
         }
+        if($securityType == 'sha128') {
+            $securityType = 'sha1';
+        }
+        $shaString = $shaPharse . $shaString . $shaPharse;
+        $signature = hash($securityType, $shaString);
 
-        $concatedStr = $shaResponcePharse.$concatedStr.$shaResponcePharse;
-        
-        if($securityType == 'sha256') {
-            $signature = hash('sha256', $concatedStr);
-        } elseif ($securityType == 'sha128'){
-            $signature = sha1($concatedStr);
-        } elseif ($securityType == 'sha512'){
-            $signature = hash('sha512', $concatedStr);
-        }
-        
-        if ( strtolower($returnSignature) == strtolower($signature) ) {
-            return true;
-        } else {
-            return false; 
-        }
-       
         return $signature;
     }
-    
-    
-    /**
-     * get return request params
-     * @return array $request 
-     */
-    public function getReturnRequestParams() {
-        
-        $request = $_REQUEST;
-        
-        //remove signature param deom parameters before calculate signature
-        if (isset($request['signature'])) {
-            unset($request['signature']);
-            
-        }
-       
-        return $request;
-    
-    }
-    
 }
